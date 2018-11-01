@@ -17,7 +17,7 @@ $res = array();
   while($row = $result->fetch_assoc()) {
     array_push($res, $row);
   }
-  sendData($res);
+  send_data($res);
 // date_default_timezone_set('PRC');
 // $version = $data["version"];
 // $files = $data["files"];
