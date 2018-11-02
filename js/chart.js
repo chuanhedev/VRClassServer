@@ -20,15 +20,199 @@ let defaultProperties = [{
     },
 ]
 
+// function renderGraph() {
+//     let timeGap = document.getElementById("ddEventTimeGap").value;
+//     let gapCount = document.getElementById("ddEventTotalGap").value;
+//     let gap;
+//     if (timeGap == '1h')
+//         gap = 3600;
+//     else if (timeGap == '1d')
+//         gap = 24 * 3600;
+//     $.ajax({
+//         type: "POST",
+//         url: "./event.php",
+//         success: function (data) {
+//             console.log('render ', data);
+//             renderGraph2(JSON.parse(data));
+//         },
+//         data: {
+//             data: JSON.stringify({
+//                 gap: gap,
+//                 gapCount: gapCount,
+//                 group: []
+//             })
+//         }
+//     })
+// }
+
+function getTimeGap(str) {
+    let gap;
+    if (str == '1h')
+        gap = 3600;
+    else if (str == '1d')
+        gap = 24 * 3600;
+    return gap;
+}
+
+function renderGraph2(data) {
+    let group = data.group;
+    data = data.data;
+    let timeGap = document.getElementById("ddEventTimeGap").value;
+    let totalGap = parseInt(document.getElementById("ddEventTotalGap").value);
+    let graphStyleLine = document.getElementById("graphStyleLine").checked;
+    let graphStyleBar = document.getElementById("graphStyleBar").checked;
+    let type = graphStyleLine ? 'line' : 'bar';
+    let stacked = graphStyleLine ? false : true;
+    var chartContainer = document.getElementById("myChartContainer");
+    chartContainer.innerHTML = "&nbsp;";
+    chartContainer.innerHTML = `<canvas id="myChart" width="400" height="200"></canvas>`;
+    var ctx = document.getElementById("myChart").getContext('2d');
+    let now = new Date();
+    now.setMilliseconds(0);
+    now.setSeconds(0);
+    now.setMinutes(0);
+    let xLabels = [];
+    if (timeGap.substr(-1) == 'd') {
+        now.setHours(0);
+    }
+    let gap = getTimeGap(timeGap) * 1000;
+    let numLabels = 10;
+    let dataByName = {};
+    let dataByTime = {};
+    for (let i = 0; i < data.length; i++) {
+        let d = data[i];
+        let value = d[group];
+        if (!dataByName[value])
+            dataByName[value] = {
+                data: []
+            };
+        if (!dataByTime[d.timekey])
+            dataByTime[d.timekey] = {};
+        dataByName[value][d.timekey] = d.count;
+        dataByTime[d.timekey][value] = d.count;
+    }
+    for (let i = 0; i < totalGap; i++) {
+        let t = new Date(now.getTime() - i * gap);
+        let timeKey = (t.getTime() / 1000).toString();
+        if (i % (Math.round(totalGap / numLabels)) == 0) {
+            let tStr = (t.getMonth() + 1) + '-' + t.getDate();
+            if (timeGap.substr(-1) == 'h')
+                tStr += ' ' + t.getHours() + 'h';
+            xLabels.unshift(tStr);
+        } else {
+            xLabels.unshift("");
+        }
+        for (let k in dataByName) {
+            if (dataByTime[timeKey] && dataByTime[timeKey][k])
+                dataByName[k].data.unshift(dataByTime[timeKey][k]);
+            else
+                dataByName[k].data.unshift(0);
+        }
+    }
+    let datasets = [];
+    let idx = 0;
+    for (let k in dataByName) {
+        datasets.push({
+            data: dataByName[k].data,
+            fill: false,
+            label: k,
+            backgroundColor: Chart.helpers.color(getChartColor(idx)).alpha(0.5).rgbString(),
+            borderColor: getChartColor(idx)
+        });
+        idx++;
+    }
+
+    //dropdown 
+    // let ddEventName = document.getElementById("ddEventName");
+    // ddEventName.innerHTML = `<option class="dropdown-item" value=''></option>`;
+    // for (let k in dataByName) {
+    //     ddEventName.innerHTML += `<option class="dropdown-item" value='${k}'>${k}</option>`;
+    // }
+
+    var myChart = new Chart(ctx, {
+        type: type,
+        data: {
+            datasets: datasets,
+            // datasets: [{
+            //     data: [0, 45, 25, 20, 10, 2],
+            //     fill: false,
+            //     label: "data1",
+            //     backgroundColor: Chart.helpers.color(getChartColor()).alpha(0.5).rgbString(),
+            //     borderColor: getChartColor()
+            // }, {
+            //     data: [20, 35, 15, 40, 15, -5],
+            //     fill: false,
+            //     label: "data2",
+            //     backgroundColor: Chart.helpers.color(getChartColor(1)).alpha(0.5).rgbString(),
+            //     borderColor: getChartColor(1)
+            // }],
+            labels: xLabels
+        },
+        options: {
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true
+                    },
+                    stacked: stacked
+                }],
+                xAxes: [{
+                    stacked: stacked
+                }]
+            },
+            elements: {
+                line: {
+                    tension: 0, // disables bezier curves
+                }
+            },
+            animation: {
+                duration: 0, // general animation time
+            },
+            hover: {
+                animationDuration: 0, // duration of animations when hovering an item
+            },
+            responsiveAnimationDuration: 0, // animation duration after a resize
+        }
+    });
+}
+
+
+
+function getChartColor(idx = 0) {
+    // console.log(window.chartColors);
+    var colorNames = Object.keys(window.chartColors);
+    var colorName = colorNames[idx % colorNames.length];
+    var dsColor = window.chartColors[colorName];
+    // console.log(colorNames, colorName, dsColor);
+    return dsColor;
+}
+
+window.chartColors = {
+    red: 'rgb(255, 99, 132)',
+    orange: 'rgb(255, 159, 64)',
+    yellow: 'rgb(255, 205, 86)',
+    green: 'rgb(75, 192, 192)',
+    blue: 'rgb(54, 162, 235)',
+    purple: 'rgb(153, 102, 255)',
+    grey: 'rgb(201, 203, 207)'
+};
+
 function initFilterComponent(data) {
+    let promises = [];
     for (let i = 0; i < data.metric.length; i++) {
         let metric = new MetricComponent(data.metric[i]);
         divFilters.appendChild(metric.div);
+        promises.push(metric.init());
     }
     for (let i = 0; i < data.group.length; i++) {
         let group = new GroupComponent(data.group[i]);
         divFilters.appendChild(group.div);
+        promises.push(group.init());
     }
+    Promise.all(promises).then(()=>{
+        console.log("haaa");
+        updateChart();
+    })
 }
 
 function updateFilterList() {
@@ -69,7 +253,7 @@ function updateChart() {
 }
 
 class GroupComponent {
-    constructor(d) {
+    constructor(data) {
         this.type = 'group'
         this.div = createElementByString(`<div class="border border-primary rounded p-1 m-1">
             GROUP BY
@@ -89,11 +273,17 @@ class GroupComponent {
             updateFilterList();
             $(this.div).remove();
         });
-        addPropertiesToList(this.property).then(() => {
-            if (d) this.property.value = d;
-        });
         filterList.push(this);
-        updateFilterList();
+        this.data = data;
+        if (!data) this.init();
+        // updateFilterList();
+    }
+
+    init() {
+        return addPropertiesToList(this.property).then(() => {
+            console.log("GroupComponent inited");
+            if (this.data) this.property.value = this.data;
+        });
     }
 
     getData() {
@@ -144,7 +334,7 @@ class WhereComponent {
         });
         addPropertiesToList(this.property);
         filterList.push(this);
-        updateFilterList();
+        // updateFilterList();
     }
 
     getData() {
@@ -176,12 +366,21 @@ class MetricComponent {
         this.value = this.div.children[1];
         this.delete = this.div.children[2];
         hideElement(this.value);
-        $(this.delete).click(() => $(this.div).remove());
+        $(this.delete).click(() => {
+            $(this.div).remove();
+            updateFilterList();
+        });
         $(this.property).change(() => this.onPropertyChange());
-        addAllPropertiesToList(this.property).then(() => {
+        filterList.push(this);
+        this.data = data;
+        if (!data) this.init();
+    }
+
+    init() {
+        return addAllPropertiesToList(this.property).then(() => {
+            let data = this.data;
             if (data) {
                 if (data.property) {
-                    console.log(data);
                     this.property.value = data.property;
                     this.onPropertyChange();
                     this.value.value = data.value;
@@ -218,7 +417,6 @@ class MetricComponent {
 
 function addAllPropertiesToList(div) {
     return getDataIfCachePromise('event_all_property').then(data => {
-        console.log('getDataIfCachePromise ', data);
         selectionAddOption(div, '');
         for (let i = 0; i < defaultProperties.length; i++) {
             selectionAddOption(div, defaultProperties[i].colName + '0', defaultProperties[i].name);
