@@ -21,7 +21,7 @@ $res = array();
 while($row = $result->fetch_assoc()) {
 array_push($res, $row["result"]);
 }
-sendData($res);
+send_data($res);
 
 $conn->close();
 
