@@ -4,6 +4,7 @@ require('../utils/db_config.php');
 require('../utils/request.php');
 
 $conn = new mysqli($servername, $username, $password, $dbname);
+$conn->set_charset("utf8");
 
 $data = post_data();
 date_default_timezone_set('PRC');
