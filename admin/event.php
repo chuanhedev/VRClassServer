@@ -8,16 +8,32 @@ $conn = new mysqli($servername, $username, $password, $dbname);
 $data = post_data();
 $gap = $data["gap"];
 $gapCount = $data["gapCount"];
+$group = $data["group"];
+$group_property = '';
+if(count($group) > 0){
+  $group_property = $group[0]["property"];
+}
+if(empty($group_property)){
+  $group_query1 = ", count(*) as count";
+  $group_query2 = "";
+}else{
+  $group_query1 = " , {$group_property}, count({$group_property}) as count ";
+  $group_query2 = ", {$group_property}";
+}
 
-$sql = sprintf("SELECT (FLOOR((timestamp + 28800)/%s)*%s  - 28800) AS timekey, name, count(name) as count
+//order by {$group_property} desc, timekey desc
+$sql = sprintf("SELECT (FLOOR((timestamp + 28800)/%s)*%s  - 28800) AS timekey {$group_query1}
   FROM    event where timestamp > UNIX_TIMESTAMP(now())- %s * %s
-GROUP BY timekey, name order by name desc, timekey desc", $gap, $gap, $gap, $gapCount);
+GROUP BY timekey {$group_query2}", $gap, $gap, $gap, $gapCount);
 $result = $conn->query($sql);
 $res = array();
   while($row = $result->fetch_assoc()) {
     array_push($res, $row);
   }
-  sendData($res);
+  echo json_encode(array(
+    "data"=>$res,
+    "group"=>$group_property
+  ));
 // date_default_timezone_set('PRC');
 // $version = $data["version"];
 // $files = $data["files"];
