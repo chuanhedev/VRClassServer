@@ -412,6 +412,7 @@ $(function () {
         dataType: "json"
     });
     initFilterComponent(queryData);
+    console.log('dddddddd');
     // updateChart();
     renderGraph();
 })

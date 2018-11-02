@@ -41,6 +41,25 @@ function getDataIfCache(api, data, cb) {
     }
 }
 
+function getDataIfCachePromise(api, data) {
+    let key = api + data ? JSON.stringify(data) : "";
+    if (cache[key]) {
+        return Promise.resolve(cache[key]);
+    } else {
+        return new Promise(resolve=>{
+            $.ajax({
+                url: api + ".php",
+                data: data,
+                success: function (data2) {
+                    let d = JSON.parse(data2).data;
+                    cache[key] = d;
+                    resolve(d);
+                }
+            })
+        })
+    }
+}
+
 function createElementByString(str) {
     var wrapper = document.createElement('div');
     wrapper.innerHTML = str;

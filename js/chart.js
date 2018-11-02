@@ -1,4 +1,3 @@
-
 let divFilters = document.getElementById("divFilters");
 let filterList = [];
 let queryData = {
@@ -90,7 +89,7 @@ class GroupComponent {
             updateFilterList();
             $(this.div).remove();
         });
-        addPropertiesToList(this.property, () => {
+        addPropertiesToList(this.property).then(() => {
             if (d) this.property.value = d;
         });
         filterList.push(this);
@@ -179,7 +178,7 @@ class MetricComponent {
         hideElement(this.value);
         $(this.delete).click(() => $(this.div).remove());
         $(this.property).change(() => this.onPropertyChange());
-        addAllPropertiesToList(this.property, () => {
+        addAllPropertiesToList(this.property).then(() => {
             if (data) {
                 if (data.property) {
                     console.log(data);
@@ -217,8 +216,9 @@ class MetricComponent {
     }
 }
 
-function addAllPropertiesToList(div, cb) {
-    getDataIfCache('event_all_property', undefined, (data) => {
+function addAllPropertiesToList(div) {
+    return getDataIfCachePromise('event_all_property').then(data => {
+        console.log('getDataIfCachePromise ', data);
         selectionAddOption(div, '');
         for (let i = 0; i < defaultProperties.length; i++) {
             selectionAddOption(div, defaultProperties[i].colName + '0', defaultProperties[i].name);
@@ -226,12 +226,11 @@ function addAllPropertiesToList(div, cb) {
         for (let i = 0; i < data.length; i++) {
             div.innerHTML += `<option class="dropdown-item" value='${data[i].result+data[i].type}'>${data[i].result}</option>`;
         }
-        if (cb) cb(data);
     });
 }
 
-function addPropertiesToList(div, cb) {
-    getDataIfCache('event_property', undefined, (data) => {
+function addPropertiesToList(div) {
+    return getDataIfCachePromise('event_property').then((data) => {
         selectionAddOption(div, '');
         for (let i = 0; i < defaultProperties.length; i++) {
             selectionAddOption(div, defaultProperties[i].colName, defaultProperties[i].name);
@@ -239,7 +238,6 @@ function addPropertiesToList(div, cb) {
         for (let i = 0; i < data.length; i++) {
             selectionAddOption(div, data[i]);
         }
-        if (cb) cb(data);
     });
 }
 //
