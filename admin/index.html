@@ -14,59 +14,22 @@
     <header class="navbar">
         <ul class="nav nav-tabs" id="myTab" role="tablist">
             <li class="nav-item">
-                <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home"
-                    aria-selected="true">版本</a>
+                <a class="nav-link active" id="event-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile"
+                    aria-selected="true">事件</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" id="event-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile"
-                    aria-selected="false">事件</a>
+                <a class="nav-link" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home"
+                    aria-selected="false">版本</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="device-tab" data-toggle="tab" href="#device" role="tab" aria-controls="device"
+                    aria-selected="false">设备</a>
             </li>
         </ul>
     </header>
     <div class="container">
         <div class="tab-content mt-3" id="myTabContent">
-            <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
-                <p class="h3" id="currentVersion"></p>
-                <p>服务器文件</p>
-                <table class="table table-sm table-striped" id="filesServer">
-                    <thead>
-                        <tr>
-                            <th scope="col">#</th>
-                            <th scope="col">文件名</th>
-                            <th scope="col">大小</th>
-                            <th scope="col">MD5</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-                <hr />
-                <div>
-                    发布版本号: <input value="" id="publishVersion">
-                </div>
-                <div id="drop-area" class=" m-3 p-3">
-                    <form class="my-form">
-                        <p>把上传的文件拖进这里</p>
-                        <input type="file" id="fileElem" multiple accept="image/*" onchange="handleFiles(this.files)">
-                        <!-- <label class="button" for="fileElem">Select some files</label> -->
-                    </form>
-                    <!-- <progress id="progress-bar" max=100 value=0></progress> -->
-                    <!-- <div id="gallery" /> -->
-                </div>
-                <p>上传文件</p>
-                <table class="table table-sm table-striped" id="filesUploaded">
-                    <thead>
-                        <tr>
-                            <th scope="col">#</th>
-                            <th scope="col">文件名</th>
-                            <th scope="col">大小</th>
-                            <th scope="col">MD5</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-                <input class="btn btn-primary" value="上传" onclick="onUploadFiles()">
-            </div>
-            <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="event-tab">
+            <div class="tab-pane fade show active" id="profile" role="tabpanel" aria-labelledby="event-tab">
                 <div class="row">
                     <div class="ml-3 mr-3">
                         <label>事件间隔</label>
@@ -120,6 +83,71 @@
 
                 </div>
             </div>
+            <div class="tab-pane fade" id="home" role="tabpanel" aria-labelledby="home-tab">
+                <p class="h3" id="currentVersion"></p>
+                <p>服务器文件</p>
+                <table class="table table-sm table-striped" id="filesServer">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">文件名</th>
+                            <th scope="col">大小</th>
+                            <th scope="col">MD5</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <hr />
+                <div>
+                    发布版本号: <input value="" id="publishVersion">
+                </div>
+                <div id="drop-area" class=" m-3 p-3">
+                    <form class="my-form">
+                        <p>把上传的文件拖进这里</p>
+                        <input type="file" id="fileElem" multiple accept="image/*" onchange="handleFiles(this.files)">
+                        <!-- <label class="button" for="fileElem">Select some files</label> -->
+                    </form>
+                    <!-- <progress id="progress-bar" max=100 value=0></progress> -->
+                    <!-- <div id="gallery" /> -->
+                </div>
+                <p>上传文件</p>
+                <table class="table table-sm table-striped" id="filesUploaded">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">文件名</th>
+                            <th scope="col">大小</th>
+                            <th scope="col">MD5</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <input class="btn btn-primary" value="上传" onclick="onUploadFiles()">
+            </div>
+            <div class="tab-pane fade" id="device" role="tabpanel" aria-labelledby="device-tab">
+                <div>
+                    <div class="m-2">
+                        目标学校
+                        <select class='dropdown' id="location">
+                        </select>
+                    </div>
+                    <!-- <button id="select-all" class="btn button-primary m-1" >全选</button> -->
+                    <table class="table table-sm table-striped table-condensed">
+                        <tr>
+                            <th class="active">
+                                <input type="checkbox" class="select-all checkbox" name="select-all" onclick="onSelectAllDevices(this)"/>
+                            </th>
+                            <th >Device ID</th>
+                            <th >名称</th>
+                            <th >上线时间</th>
+                        </tr>
+                        <tbody id="all-device">
+                                
+                        </tbody>
+                    </table>
+                    <input class="btn btn-primary" value="更新" onclick="onUpdateDevices()">
+                </div>
+            </div>
         </div>
     </div>
 
@@ -131,6 +159,7 @@
 <script src="../lib/promise.min.js"></script>
 <script src="../js/utils.js"></script>
 <script src="../js/chart.js"></script>
+<script src="../js/device.js"></script>
 <script src="../js/admin.js"></script>
 
 </html>
