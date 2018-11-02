@@ -27,7 +27,7 @@ function error($str){
     die();
 }
 
-function sendData($d){
+function send_data($d){
     echo json_encode(array("data"=>$d));
 }
 ?>
