@@ -3,10 +3,7 @@ let filterList = [];
 let queryData = {
     gap: '1d',
     gapCount: '50',
-    metric: [{
-        property: 'NAME0',
-        value: 'count'
-    }],
+    metric: [],
     where: [],
     group: ['NAME'],
 };
@@ -56,6 +53,7 @@ function getTimeGap(str) {
 
 function renderGraph2(data) {
     let group = data.group;
+    let aggregate = data.ag;
     data = data.data;
     let timeGap = document.getElementById("ddEventTimeGap").value;
     let totalGap = parseInt(document.getElementById("ddEventTotalGap").value);
@@ -88,8 +86,8 @@ function renderGraph2(data) {
             };
         if (!dataByTime[d.timekey])
             dataByTime[d.timekey] = {};
-        dataByName[value][d.timekey] = d.count;
-        dataByTime[d.timekey][value] = d.count;
+        dataByName[value][d.timekey] = d[aggregate];
+        dataByTime[d.timekey][value] = d[aggregate];
     }
     for (let i = 0; i < totalGap; i++) {
         let t = new Date(now.getTime() - i * gap);
@@ -377,7 +375,7 @@ class MetricComponent {
     }
 
     init() {
-        return addAllPropertiesToList(this.property).then(() => {
+        return addMetricsToList(this.property).then(() => {
             let data = this.data;
             if (data) {
                 if (data.property) {
@@ -394,12 +392,12 @@ class MetricComponent {
         if (value) {
             showElement(this.value);
             selectionClear(this.value);
-            let type = this.property.value.substr(-1);
-            selectionAddOption(this.value, 'count');
-            if (type == '1') {
-                selectionAddOption(this.value, 'avg');
-                selectionAddOption(this.value, 'sum');
-            }
+            // let type = this.property.value.substr(-1);
+            // selectionAddOption(this.value, 'count');
+            // if (type == '1') {
+            selectionAddOption(this.value, 'avg');
+            selectionAddOption(this.value, 'sum');
+            // }
         } else {
             hideElement(this.value);
         }
@@ -415,14 +413,11 @@ class MetricComponent {
     }
 }
 
-function addAllPropertiesToList(div) {
-    return getDataIfCachePromise('event_all_property').then(data => {
+function addMetricsToList(div) {
+    return getDataIfCachePromise('event_metric').then(data => {
         selectionAddOption(div, '');
-        for (let i = 0; i < defaultProperties.length; i++) {
-            selectionAddOption(div, defaultProperties[i].colName + '0', defaultProperties[i].name);
-        }
         for (let i = 0; i < data.length; i++) {
-            div.innerHTML += `<option class="dropdown-item" value='${data[i].result+data[i].type}'>${data[i].result}</option>`;
+            selectionAddOption(div, data[i]);
         }
     });
 }

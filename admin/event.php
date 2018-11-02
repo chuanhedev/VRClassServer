@@ -9,22 +9,55 @@ $data = post_data();
 $gap = $data["gap"];
 $gapCount = $data["gapCount"];
 $group = $data["group"];
+$metric = $data["metric"];
 $group_property = '';
+$need_join = false;
+$where = "";
+$aggregate = "count";
+$table_query = "event";
 if(count($group) > 0){
-  $group_property = $group[0]["property"];
+  $group_property = $group[0];
 }
 if(empty($group_property)){
-  $group_query1 = ", count(*) as count";
-  $group_query2 = "";
+  $aggregate_query = ", ";
+  $group_query = "";
+}else if(is_join_need($group_property)){
+  $need_join = true;
+  $aggregate_query = " , value as {$group_property}, ";
+  $group_query = ", value";
+  $where  = " and property = '{$group_property}'";
 }else{
-  $group_query1 = " , {$group_property}, count({$group_property}) as count ";
-  $group_query2 = ", {$group_property}";
+  $aggregate_query = " , {$group_property}, ";
+  $group_query = ", {$group_property}";
 }
-
+$aggregate_query2 = "count(*) as count";
+if(count($metric) > 0){
+  $m = $metric[0];
+  $metric_property = $m["property"];
+  if(empty($metric_property)){
+  }else{
+    $aggregate = $m["value"];
+    $need_join = true;
+    $aggregate_query2 = "{$aggregate}({$metric_property}) as {$aggregate}";
+  }
+}
+if($need_join)
+  $table_query = "event_data LEFT JOIN event on event.id = event_data.event_id";
 //order by {$group_property} desc, timekey desc
-$sql = sprintf("SELECT (FLOOR((timestamp + 28800)/%s)*%s  - 28800) AS timekey {$group_query1}
-  FROM    event where timestamp > UNIX_TIMESTAMP(now())- %s * %s
-GROUP BY timekey {$group_query2}", $gap, $gap, $gap, $gapCount);
+
+$sql = sprintf("SELECT (FLOOR((timestamp + 28800)/%s)*%s  - 28800) AS timekey {$aggregate_query} {$aggregate_query2}
+FROM {$table_query}
+where timestamp > UNIX_TIMESTAMP(now())- %s * %s {$where}
+GROUP BY timekey {$group_query}", $gap, $gap, $gap, $gapCount);
+// }else{
+//   $sql = sprintf("SELECT (FLOOR((timestamp + 28800)/%s)*%s  - 28800) AS timekey {$aggregate_query} {$aggregate_query2}
+//   FROM event 
+//   where timestamp > UNIX_TIMESTAMP(now())- %s * %s {$where}
+//   GROUP BY timekey {$group_query}", $gap, $gap, $gap, $gapCount);
+// }
+
+// echo $sql;
+
 $result = $conn->query($sql);
 $res = array();
   while($row = $result->fetch_assoc()) {
@@ -32,42 +65,16 @@ $res = array();
   }
   echo json_encode(array(
     "data"=>$res,
-    "group"=>$group_property
+    "group"=>$group_property,
+    "join"=>$need_join,
+    "sql" =>$sql,
+    'ag' => $aggregate 
   ));
-// date_default_timezone_set('PRC');
-// $version = $data["version"];
-// $files = $data["files"];
-
-// $result = $conn->query("select count(*) as count from application where version = '". $version ."'");
-// $count = $result->fetch_assoc()["count"];
-// date_default_timezone_set('PRC');
-// $date = date("Y-m-d H:i:s");
-// if($count == 1){
-//   error("version existed");
-// }else{
-//   $result = $conn->query("select max(id) as id from application");
-//   $last_version_id = $result->fetch_assoc()["id"];
-
-//   $sql = sprintf("insert into application (version, date) values ('%s','%s')", $version, $date);
-//   $conn->query($sql);
-//   $insert_id = $conn->insert_id;
-  
-//   $result = $conn->query("select * from app_file where version_id =" .$last_version_id);
-//   while($row = $result->fetch_assoc()) {
-//     $sql = sprintf("insert into app_file (name, md5, size, version_id) values ('%s','%s',%s,%s)"
-//     , $row["name"], $row["md5"], $row["size"], $insert_id);
-//     echo $sql;
-//     $conn->query($sql);
-//   }
-//   for($i = 0; $i<count($files); $i++){
-//     $file_data = $files[$i];
-//     $sql = sprintf("insert into app_file (name, md5, version_id, size) values ('%s','%s',%s,%s)"
-//     , $file_data["name"], $file_data["md5"], $insert_id, $file_data["size"]);
-//     echo $sql;
-//     $conn->query($sql);
-//   }
-// }
 
 $conn->close();
+
+function is_join_need($col_name){
+  return $col_name != strtoupper($col_name);
+}
 
 ?>
