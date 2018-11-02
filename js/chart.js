@@ -365,8 +365,9 @@ class MetricComponent {
         this.delete = this.div.children[2];
         hideElement(this.value);
         $(this.delete).click(() => {
-            $(this.div).remove();
+            filterList.splice(filterList.indexOf(this), 1);
             updateFilterList();
+            $(this.div).remove();
         });
         $(this.property).change(() => this.onPropertyChange());
         filterList.push(this);
