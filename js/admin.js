@@ -215,14 +215,17 @@ function onUploadFilesDone() {
 let serverFiles = {};
 let uploadFiles = {};
 
-$(function () {
+function initVersionPanel() {
     $.ajax({
         url: "../version.php",
         success: function (data) {
             console.log(data);
             document.getElementById("currentVersion").innerText = "当前版本号：" + data.version;
+            let vArr = data.version.split(".");
+            vArr[vArr.length - 1] = parseInt(vArr[vArr.length - 1]) + 1;
+            document.getElementById("publishVersion").value = vArr.join(".");
             let table = document.querySelector("#filesServer tbody");
-            console.log(table);
+            table.innerHTML = "";
             let rowIndex = 0;
             for (let i = 0; i < data.files.length; i++) {
                 let file = data.files[i];
@@ -235,9 +238,12 @@ $(function () {
         },
         dataType: "json"
     });
+
+}
+
+$(function () {
+    initVersionPanel();
     initFilterComponent(queryData);
-    console.log('dddddddd');
     // updateChart();
     // renderGraph();
 })
-
