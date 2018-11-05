@@ -84,6 +84,7 @@ function renderTable(files) {
     let tableContent = document.querySelector("#filesUploaded tbody");
     tableContent.innerHTML = "";
     let rowIndex = 1;
+    uploadFiles = {};
     for (let i = 0; i < files.length; i++) {
         let file = files[i];
         let key = "|" + file.name;
@@ -117,30 +118,30 @@ function renderTable(files) {
 // 1	3.jpg	47221.85kb	f523c41e133f83f5d3d082deb94bccad
 // 2	1.jpg	49291.56kb	ee224e07441a6b6f27d951d9bbfb2745
 
-function uploadFile(file, i) {
-    var url = './upload.php'
-    var xhr = new XMLHttpRequest()
-    var formData = new FormData()
-    xhr.open('POST', url, true)
-    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest')
+// function uploadFile(file, i) {
+//     var url = './upload.php'
+//     var xhr = new XMLHttpRequest()
+//     var formData = new FormData()
+//     xhr.open('POST', url, true)
+//     xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest')
 
-    // Update progress (can be used to show progress indicator)
-    xhr.upload.addEventListener("progress", function (e) {
-        updateProgress(i, (e.loaded * 100.0 / e.total) || 100)
-    })
+//     // Update progress (can be used to show progress indicator)
+//     xhr.upload.addEventListener("progress", function (e) {
+//         updateProgress(i, (e.loaded * 100.0 / e.total) || 100)
+//     })
 
-    xhr.addEventListener('readystatechange', function (e) {
-        if (xhr.readyState == 4 && xhr.status == 200) {
-            updateProgress(i, 100); // <- Add this
-            console.log(xhr);
-            console.log(this.responseText);
-        } else if (xhr.readyState == 4 && xhr.status != 200) {
-            // Error. Inform the user
-        }
-    })
-    formData.append('fileToUpload', file)
-    xhr.send(formData)
-}
+//     xhr.addEventListener('readystatechange', function (e) {
+//         if (xhr.readyState == 4 && xhr.status == 200) {
+//             updateProgress(i, 100); // <- Add this
+//             console.log(xhr);
+//             console.log(this.responseText);
+//         } else if (xhr.readyState == 4 && xhr.status != 200) {
+//             // Error. Inform the user
+//         }
+//     })
+//     formData.append('fileToUpload', file)
+//     xhr.send(formData)
+// }
 
 function onUploadFiles() {
     let version = document.getElementById("publishVersion").value;
@@ -152,34 +153,56 @@ function onUploadFiles() {
         console.log('nothing to upload');
         return;
     }
+    $('#exampleModal').modal('show');
+
+    let promise = Promise.resolve();
+    $('#btn-progress-done').prop('disabled', true);
     console.log(uploadFiles);
-    let upload_status = {};
+    let numFiles = Object.keys(uploadFiles).length;
+    let fileIdx = 1;
     for (let key in uploadFiles) {
-        let file = uploadFiles[key].file;
-        console.log(file);
-        var formData = new FormData();
-        formData.append('fileToUpload', file)
-        $.ajax({
-            type: "POST",
-            url: "./upload.php",
-            processData: false,
-            contentType: false,
-            success: function (data) {
-                console.log(data);
-                if (data == "1") {
-                    upload_status[key] = true;
-                    //check if all uploaded
-                    for (let key in uploadFiles) {
-                        if (!upload_status[key]) {
-                            return;
+        promise = promise.then(()=>new Promise((resolve, reject) => {
+            let file = uploadFiles[key].file;
+            $("#upload-file-info").text(file.name + ` (${fileIdx++}/${numFiles})`);
+            console.log(file);
+            var formData = new FormData();
+            formData.append('fileToUpload', file);
+            $.ajax({
+                xhr: function () {
+                    var xhr = new window.XMLHttpRequest();
+                    //Upload progress
+                    xhr.upload.addEventListener("progress", function (evt) {
+                        // console.log(evt);
+                        if (evt.lengthComputable) {
+                            var percentComplete = evt.loaded / evt.total;
+                            //Do something with upload progress
+                            $('#progressbar').css("width", (percentComplete * 100) + "%");
+                            console.log(percentComplete);
                         }
+                    }, false);
+                    return xhr;
+                },
+                type: "POST",
+                url: "./upload.php",
+                processData: false,
+                contentType: false,
+                success: function (data) {
+                    console.log(data);
+                    if (data == "1") {
+                        resolve();
+                    } else {
+                        reject();
                     }
-                    onUploadFilesDone();
-                }
-            },
-            data: formData
-        })
+                },
+                data: formData
+            })
+        }));
     }
+    promise.then(() => {
+        console.log('uploads, done');
+        $('#btn-progress-done').prop('disabled', false);
+        onUploadFilesDone();
+    });
 }
 
 function onUploadFilesDone() {
