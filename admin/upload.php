@@ -1,5 +1,5 @@
 <?php
-$target_dir = $_SERVER["DOCUMENT_ROOT"] ."/chuanhe/resources/";
+$target_dir = $_SERVER["DOCUMENT_ROOT"] ."/vrclass/resources/";
 $target_file = $target_dir . basename($_FILES["fileToUpload"]["name"]);
 if (move_uploaded_file($_FILES["fileToUpload"]["tmp_name"], $target_file)) {
   echo "1";

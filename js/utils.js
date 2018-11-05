@@ -22,7 +22,7 @@ function selectionClear(div) {
 }
 
 function getDataIfCache(api, data, cb) {
-    let key = api + data ? JSON.stringify(data) : "";
+    let key = api + (data ? JSON.stringify(data) : "");
     if (cache[key]) {
         console.log("get data from cache");
         if (cb)
@@ -42,7 +42,8 @@ function getDataIfCache(api, data, cb) {
 }
 
 function getDataIfCachePromise(api, data) {
-    let key = api + data ? JSON.stringify(data) : "";
+    let key = api + (data ? JSON.stringify(data) : "");
+    console.log('getDataIfCachePromise', key);
     if (cache[key]) {
         return Promise.resolve(cache[key]);
     } else {

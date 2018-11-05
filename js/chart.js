@@ -4,15 +4,23 @@ let queryData = {
     gap: '1d',
     gapCount: '50',
     metric: [],
+    // where: [{
+    //     property: 'Level',
+    //     value: '1'
+    // }],
     where: [],
-    group: ['NAME'],
+    group: ['EVENT.NAME'],
 };
 let defaultProperties = [{
-        colName: 'USER',
+        colName: 'LOCATION.NAME',
         name: '学校'
     },
     {
-        colName: 'NAME',
+        colName: 'DEVICE.NAME',
+        name: '设备名'
+    },
+    {
+        colName: 'EVENT.NAME',
         name: '事件名'
     },
 ]
@@ -202,12 +210,17 @@ function initFilterComponent(data) {
         divFilters.appendChild(metric.div);
         promises.push(metric.init());
     }
+    for (let i = 0; i < data.where.length; i++) {
+        let where = new WhereComponent(data.where[i]);
+        divFilters.appendChild(where.div);
+        promises.push(where.init());
+    }
     for (let i = 0; i < data.group.length; i++) {
         let group = new GroupComponent(data.group[i]);
         divFilters.appendChild(group.div);
         promises.push(group.init());
     }
-    Promise.all(promises).then(()=>{
+    Promise.all(promises).then(() => {
         console.log("haaa");
         updateChart();
     })
@@ -264,7 +277,7 @@ class GroupComponent {
         this.property = this.div.children[0];
         this.delete = this.div.children[1];
         $(this.property).change(() => {
-            updateChart();
+            // updateChart();
         });
         $(this.delete).click(() => {
             filterList.splice(filterList.indexOf(this), 1);
@@ -290,7 +303,7 @@ class GroupComponent {
 }
 
 class WhereComponent {
-    constructor() {
+    constructor(data) {
         this.type = 'where';
         this.div = createElementByString(`<div class="border border-primary rounded p-1 m-1">
             WHERE
@@ -311,28 +324,58 @@ class WhereComponent {
             updateFilterList();
             $(this.div).remove();
         });
-        $(this.property).change(() => {
-            console.log(this.property.value);
-            let value = this.property.value;
-            if (value) {
-                showElement(this.value);
-                getDataIfCache('event_property', {
-                    value: value
-                }, (data) => {
-                    console.log(data);
-                    selectionClear(this.value);
-                    selectionAddOption(this.value, '');
-                    for (let i = 0; i < data.length; i++) {
-                        selectionAddOption(this.value, data[i]);
-                    }
-                });
-            } else {
-                hideElement(this.value);
+        $(this.property).change(() => this.onPropertyChange());
+        $(this.value).change(() => {
+            // updateChart();
+        });
+        // addPropertiesToList(this.property);
+        filterList.push(this);
+        this.data = data;
+        if (!data) this.init();
+        // updateFilterList();
+    }
+
+    init() {
+        return addPropertiesToList(this.property).then(() => {
+            console.log("WhereComponent inited");
+            if (this.data) this.property.value = this.data;
+            this.onPropertyChange();
+            this.value.value = data.value;
+        });
+    }
+
+    onPropertyChange() {
+        let value = this.property.value;
+        if (value) {
+            showElement(this.value);
+            return getDataIfCachePromise('event_property', {
+                value: value
+            }).then(data => {
+                console.log(data);
+                selectionClear(this.value);
+                selectionAddOption(this.value, '');
+                for (let i = 0; i < data.length; i++) {
+                    selectionAddOption(this.value, data[i]);
+                }
+            });
+        } else {
+            hideElement(this.value);
+        }
+        return Promise.resolve();
+    }
+
+    init() {
+        return addPropertiesToList(this.property).then(() => {
+            let data = this.data;
+            if (data) {
+                if (data.property) {
+                    this.property.value = data.property;
+                    return this.onPropertyChange().then(()=>{
+                        this.value.value = data.value;
+                    });
+                }
             }
         });
-        addPropertiesToList(this.property);
-        filterList.push(this);
-        // updateFilterList();
     }
 
     getData() {
