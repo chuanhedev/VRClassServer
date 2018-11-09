@@ -70,8 +70,7 @@ if($need_join)
 else
   $table_query = "event LEFT JOIN device on event.device_id = device.id 
   LEFT JOIN location on location.id = device.location_id  ";
-$sql = sprintf("SELECT (FLOOR((timestamp + 28800)/%s)*%s  - 28800) AS timekey,
-location.name as school, device.name as devicename
+$sql = sprintf("SELECT (FLOOR((timestamp + 28800)/%s)*%s  - 28800) AS timekey
  {$aggregate_query} {$aggregate_query2}
 FROM {$table_query}
 where timestamp > UNIX_TIMESTAMP(now())- %s * %s {$where_query}
