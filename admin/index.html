@@ -6,6 +6,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="stylesheet" href="../css/bootstrap.min.css">
+    <!-- <link rel="stylesheet" href="../css/bootstrap-reboot.min.css"> -->
     <link rel="stylesheet" href="../css/main.min.css">
     <script src="../lib/md5.min.js"></script>
 </head>
@@ -143,7 +144,8 @@
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" id="btn-progress-done" class="btn btn-primary col-md-3" data-dismiss="modal">完 成</button>
+                                <button type="button" id="btn-progress-done" class="btn btn-primary col-md-3"
+                                    data-dismiss="modal">完 成</button>
                             </div>
                         </div>
                     </div>
@@ -151,6 +153,20 @@
             </div>
             <div class="tab-pane fade" id="device" role="tabpanel" aria-labelledby="device-tab">
                 <div>
+                    <!-- <h2>学校</h2> -->
+                    <!-- <input value="学校名"><input class="btn btn-primary" value="添加学校" onclick="onAddSchool()"> -->
+
+                    <div class="input-group col-md-6 p-0">
+                        <input type="text" id="text-new-school" class="form-control" placeholder="学校名">
+                        <div class="input-group-prepend">
+                            <button class="btn btn-primary" type="button" id="button-addon1" onclick="OnAddSchool()">添加学校</button>
+                        </div>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="checkbox-show-all-device" value="option1" onclick="OnShowDevices(this)">
+                        <label class="form-check-label" for="checkbox-show-all-device">显示已配置设备</label>
+                    </div>
+
                     <div class="m-2">
                         目标学校
                         <select class='dropdown' id="location">
@@ -163,6 +179,7 @@
                                 <input type="checkbox" class="select-all checkbox" name="select-all" onclick="onSelectAllDevices(this)" />
                             </th>
                             <th>Device ID</th>
+                            <th>学校</th>
                             <th>名称</th>
                             <th>上线时间</th>
                         </tr>
@@ -170,7 +187,10 @@
 
                         </tbody>
                     </table>
-                    <input class="btn btn-primary" value="更新" onclick="onUpdateDevices()">
+                    <!-- <input class="btn btn-primary" value="更新" onclick="onUpdateDevices()">
+                    <input class="btn btn-primary" value="更新" onclick="onUpdateDevices()"> -->
+                    <button class="btn btn-primary col-md-2" type="button" onclick="onUpdateDevices()">更新</button>
+                    <button class="btn btn-danger col-md-1" type="button" onclick="onDeleteDevices()">删除</button>
                 </div>
             </div>
         </div>

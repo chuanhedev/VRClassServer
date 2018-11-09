@@ -5,8 +5,14 @@ require('../utils/request.php');
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 $conn->set_charset("utf8");
-
-$result = $conn->query("select id, name, login_time from device where location_id is null order by login_time desc");
+$showall = $_POST["showall"];
+if($showall == "true")
+    $where = "";
+else
+    $where = "where location_id is null";
+$result = $conn->query("select device.id as id, device.name as device_name, location.name as location_name, login_time from device
+    left join location on location.id = device.location_id
+". $where. " order by login_time desc");
 
 $res = array();
 while($row = $result->fetch_assoc()) {
