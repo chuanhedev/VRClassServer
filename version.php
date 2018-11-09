@@ -13,6 +13,7 @@ $result = $conn->query("select * from application order by id desc limit 1");
 $result_row = $result->fetch_assoc();
 $to_version_id = $result_row["id"];
 $to_version = $result_row["version"];
+$update = $result_row["client_update"];
 // echo $to_version_id;
 
 // $from_version = '1.0.0';
@@ -36,6 +37,7 @@ while($row = $result->fetch_assoc()) {
 
 $conn->close();
 echo json_encode(array(
+  "update" =>  $update,
   "version" =>  $to_version,
   "files" => $arr
 ))
