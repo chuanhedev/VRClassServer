@@ -12,6 +12,10 @@ date_default_timezone_set('PRC');
 $version = $data["version"];
 $files = $data["files"];
 
+$update_teacher = $data["update_teacher"]?1:0;
+$update_student = $data["update_student"]?1:0;
+$update_server = $data["update_server"]?1:0;
+
 $result = $conn->query("select count(*) as count from application where version = '". $version ."'");
 $count = $result->fetch_assoc()["count"];
 date_default_timezone_set('PRC');
@@ -22,7 +26,8 @@ if($count == 1){
   $result = $conn->query("select max(id) as id from application");
   $last_version_id = $result->fetch_assoc()["id"];
 
-  $sql = sprintf("insert into application (version, date) values ('%s','%s')", $version, $date);
+  $sql = sprintf("insert into application (version, date, update_teacher,update_student ,update_server ) values ('%s','%s', %s, %s, %s)"
+  , $version, $date, $update_teacher, $update_student, $update_server);
   $conn->query($sql);
   $insert_id = $conn->insert_id;
   

@@ -198,10 +198,10 @@ function onUploadFiles() {
     }
     if (Object.keys(uploadFiles).length == 0) {
         console.log('nothing to upload');
-        return;
+        // return;
+    } else {
+        $('#exampleModal').modal('show');
     }
-    $('#exampleModal').modal('show');
-
     let promise = Promise.resolve();
     $('#btn-progress-done').prop('disabled', true);
     console.log(uploadFiles);
@@ -260,6 +260,9 @@ function onUploadFiles() {
 function onUploadFilesDone() {
     let data = {
         version: document.getElementById("publishVersion").value,
+        update_teacher: document.getElementById("checkbox-update-teacher").checked,
+        update_student: document.getElementById("checkbox-update-student").checked,
+        update_server: document.getElementById("checkbox-update-server").checked,
         files: []
     };
     for (let key in uploadFiles) {
@@ -290,15 +293,27 @@ function onUploadFilesDone() {
 //     console.log('clicked', e);
 // }
 
-let serverFiles = {};
-let uploadFiles = {};
+let serverFiles;
+let uploadFiles;
 
 function initVersionPanel() {
+    serverFiles = {};
     $.ajax({
         url: "../version.php",
         success: function (data) {
             console.log(data);
-            document.getElementById("currentVersion").innerText = "当前版本号：" + data.version;
+            let update = '';
+            if (data.update_server == "1")
+                update += ",更新服务器";
+            if (data.update_teacher == "1")
+                update += ",更新教师端";
+            if (data.update_student == "1")
+                update += ",更新学生端";
+            if (update.length > 0) {
+                update = ' <h6>(' + update.substr(1) + ')</h6>';
+            }
+            document.getElementById("currentVersion").innerHTML = "当前版本号：" + data.version + update;
+
             let vArr = data.version.split(".");
             vArr[vArr.length - 1] = parseInt(vArr[vArr.length - 1]) + 1;
             document.getElementById("publishVersion").value = vArr.join(".");
@@ -316,6 +331,7 @@ function initVersionPanel() {
         },
         dataType: "json"
     });
+    uploadFiles = {};
     let tableContent = document.querySelector("#filesUploaded tbody");
     tableContent.innerHTML = "";
 }

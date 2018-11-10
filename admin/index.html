@@ -101,9 +101,24 @@
                     <tbody></tbody>
                 </table>
                 <hr />
-                <div>
+                <div class="mb-3 mt-3">
                     发布版本号: <input value="" id="publishVersion">
                 </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="checkbox-update-teacher">
+                    <label class="form-check-label" for="checkbox-update-teacher">更新教师端</label>
+                </div>
+                
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="checkbox-update-student">
+                    <label class="form-check-label" for="checkbox-update-student">更新学生端</label>
+                </div>
+                
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="checkbox-update-server">
+                    <label class="form-check-label" for="checkbox-update-server">更新服务器</label>
+                </div>
+
                 <div id="drop-area" class=" m-3 p-3">
                     <form class="my-form">
                         <p>把上传的文件拖进这里</p>
@@ -126,7 +141,7 @@
                     </thead>
                     <tbody></tbody>
                 </table>
-                <input class="btn btn-primary" value="上传" onclick="onUploadFiles()">
+                <input class="btn btn-primary" value="发布" onclick="onUploadFiles()">
 
                 <!-- Modal -->
                 <div class="modal fade" data-backdrop="static" id="exampleModal" tabindex="-1" role="dialog">

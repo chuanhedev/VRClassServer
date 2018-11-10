@@ -43,7 +43,7 @@ function updateDeviceTable() {
                 <input type="checkbox" class="select-item checkbox" name="select-item" value="1000" />
             </td>
             <td >${data[i].id}</td>
-            <td >${data[i].location_name}</td>
+            <td >${data[i].location_name || ""}</td>
             <td ><input value="${data[i].device_name}"></td>
             <td >${data[i].login_time}</td>
         </tr>`;
