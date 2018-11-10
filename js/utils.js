@@ -47,7 +47,7 @@ function getDataIfCachePromise(api, data) {
     if (cache[key]) {
         return Promise.resolve(cache[key]);
     } else {
-        return new Promise(resolve=>{
+        return new Promise(resolve => {
             $.ajax({
                 url: api + ".php",
                 data: data,
@@ -65,4 +65,42 @@ function createElementByString(str) {
     var wrapper = document.createElement('div');
     wrapper.innerHTML = str;
     return wrapper.firstChild;
+}
+
+function readEntry(entry, files) {
+    console.log('reading...', entry.fullPath);
+    console.log(entry);
+    if (entry.isDirectory) {
+        return new Promise(resolve => {
+            let p = Promise.resolve();
+            entry.createReader().readEntries((entries) => {
+                for (let i = 0; i < entries.length; i++) {
+                    let entry2 = entries[i];
+                    // if (!entry2.isDirectory) {
+                    //     files.push({
+                    //         name: entry2.name,
+                    //         path: entry2.fullPath
+                    //     });
+                    // }
+                    p = p.then(() => readEntry(entry2, files));
+                }
+                p.then(() => resolve(files));
+            });
+        })
+    } else {
+        //for mac
+        return new Promise(resolve => {
+            if (entry.name != ".DS_Store") {
+                entry.file(file => {
+                    files.push({
+                        name: entry.name,
+                        path: entry.fullPath,
+                        file: file
+                    });
+                    resolve(files);
+                })
+            } else
+                resolve(files);
+        });
+    }
 }

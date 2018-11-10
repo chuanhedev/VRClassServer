@@ -93,6 +93,7 @@
                         <tr>
                             <th scope="col">#</th>
                             <th scope="col">文件名</th>
+                            <th scope="col">路径</th>
                             <th scope="col">大小</th>
                             <th scope="col">MD5</th>
                         </tr>
@@ -118,6 +119,7 @@
                         <tr>
                             <th scope="col">#</th>
                             <th scope="col">文件名</th>
+                            <th scope="col">路径</th>
                             <th scope="col">大小</th>
                             <th scope="col">MD5</th>
                         </tr>
@@ -131,10 +133,10 @@
                     <div class="modal-dialog" role="document">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h4 class="modal-title" id="exampleModalLabel">上传中</h5>
-                                    <button type="button" class="close" data-dismiss="modal">
-                                        <span>&times;</span>
-                                    </button>
+                                <h4 class="modal-title" id="exampleModalLabel">上传中</h4>
+                                <!-- <button type="button" class="close" data-dismiss="modal">
+                                    <span>&times;</span>
+                                </button> -->
                             </div>
                             <div class="modal-body">
                                 <p id='upload-file-info'></p>
@@ -163,7 +165,8 @@
                         </div>
                     </div>
                     <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="checkbox" id="checkbox-show-all-device" value="option1" onclick="OnShowDevices(this)">
+                        <input class="form-check-input" type="checkbox" id="checkbox-show-all-device" value="option1"
+                            onclick="OnShowDevices(this)">
                         <label class="form-check-label" for="checkbox-show-all-device">显示已配置设备</label>
                     </div>
 

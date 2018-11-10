@@ -1,5 +1,6 @@
 let divFilters = document.getElementById("divFilters");
 let filterList = [];
+
 let queryData = {
     gap: '1d',
     gapCount: '50',
@@ -11,6 +12,9 @@ let queryData = {
     where: [],
     group: ['EVENT.NAME'],
 };
+
+if (localStorage["queryData"])
+    queryData = JSON.parse(localStorage["queryData"]);
 let defaultProperties = [{
         colName: 'LOCATION.NAME',
         name: '学校'
@@ -250,6 +254,7 @@ function updateFilterList() {
 
 function updateChart() {
     updateFilterList();
+    localStorage["queryData"] = JSON.stringify(queryData);
     $.ajax({
         type: "POST",
         url: "./event.php",
@@ -370,7 +375,7 @@ class WhereComponent {
             if (data) {
                 if (data.property) {
                     this.property.value = data.property;
-                    return this.onPropertyChange().then(()=>{
+                    return this.onPropertyChange().then(() => {
                         this.value.value = data.value;
                     });
                 }
@@ -479,7 +484,7 @@ function addPropertiesToList(div) {
 }
 //
 function addMetric() {
-    if (filterList.metric === undefined || filterList.metric.length == 0) {
+    if (queryData.metric === undefined || queryData.metric.length == 0) {
         let metric = new MetricComponent();
         divFilters.appendChild(metric.div);
     }
@@ -491,7 +496,7 @@ function addWhere() {
 }
 
 function addGroup() {
-    if (filterList.group === undefined || filterList.group.length == 0) {
+    if (queryData.group === undefined || queryData.group.length == 0) {
         let group = new GroupComponent();
         divFilters.appendChild(group.div);
     }

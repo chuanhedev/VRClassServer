@@ -35,12 +35,54 @@ function unhighlight(e) {
     dropArea.classList.remove('active')
 }
 
-function handleDrop(e) {
-    var dt = e.dataTransfer
-    var files = dt.files
 
-    handleFiles(files)
+function handleDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    var items = e.dataTransfer.items;
+    var files = e.dataTransfer.files;
+    console.log(items, files);
+    let p = Promise.resolve();
+    let fileInfos = [];
+    for (var i = 0; i < items.length; ++i) {
+        let item = items[i];
+        // Skip this one if we didn't get a file.
+        if (item.kind != 'file') {
+            continue;
+        }
+        let entry = item.webkitGetAsEntry();
+        p = p.then(() => readEntry(entry, fileInfos));
+
+        // console.log(item, entry);
+        // if (entry.isDirectory) {
+        //     console.log('start');
+        //     // entry.createReader().readEntries((entries) => {
+        //     //     console.log(entries);
+        //     // });
+        //     readEntry(entry, []).then(fileInfos => {
+        //         console.log('ssss')
+        //         console.log(fileInfos);
+        //         renderTable(fileInfos);
+        //     });
+        //     console.log('end');
+        // } else {
+        //     p = p.then()
+        // }
+    }
+    p.then(f => {
+        console.log('ssss')
+        console.log(fileInfos);
+        renderTable(fileInfos);
+    });
 }
+
+// function handleDrop(e) {
+//     var dt = e.dataTransfer
+//     var files = dt.files
+//     console.log(dt);
+//     handleFiles(files)
+// }
 
 let uploadProgress = []
 let progressBar = document.getElementById('progress-bar')
@@ -86,12 +128,15 @@ function renderTable(files) {
     let rowIndex = 1;
     uploadFiles = {};
     for (let i = 0; i < files.length; i++) {
-        let file = files[i];
-        let key = "|" + file.name;
-        // console.log(typeof(file));
-        // console.log(md5.file(files[i]));
+        let file = files[i].file;
+        let filename = file.name;
+        let fullpath = files[i].path;
+        let path = fullpath.substr(1, fullpath.indexOf(filename) - 1);
+        let key = fullpath.substr(1);
         uploadFiles[key] = {
-            file: file
+            file: file,
+            name: filename,
+            path: path
         };
         let reader = new FileReader();
         reader.onload = function () {
@@ -99,16 +144,18 @@ function renderTable(files) {
                 array = new Uint8Array(arrayBuffer);
             // binaryString = String.fromCharCode.apply(null, array);
             let file_md5 = md5(array);
-            if (serverFiles[key] && serverFiles[key].md5 == file_md5)
-                delete uploadFiles[key]
-            else
+            // console.log(key, JSON.stringify(serverFiles[key]), file_md5);
+            if (serverFiles[key] && serverFiles[key].md5 == file_md5) {
+                delete uploadFiles[key];
+            } else {
                 uploadFiles[key].md5 = file_md5;
-            let row = document.createElement("tr");
-            row.innerHTML =
-                `<th>${rowIndex++}</th><td>${file.name}</td><td>${(file.size/1000).toFixed(2)}kb</td><td>${file_md5}</td>`;
-            tableContent.appendChild(row);
+                let row = document.createElement("tr");
+                row.innerHTML =
+                    `<th>${rowIndex++}</th><td>${filename}</td><td>${path}</td><td>${(file.size/1000).toFixed(2)}kb</td><td>${file_md5}</td>`;
+                tableContent.appendChild(row);
+            }
         }
-        reader.readAsArrayBuffer(files[i]);
+        reader.readAsArrayBuffer(file);
     }
 }
 
@@ -161,12 +208,14 @@ function onUploadFiles() {
     let numFiles = Object.keys(uploadFiles).length;
     let fileIdx = 1;
     for (let key in uploadFiles) {
-        promise = promise.then(()=>new Promise((resolve, reject) => {
+        promise = promise.then(() => new Promise((resolve, reject) => {
             let file = uploadFiles[key].file;
+            let path = uploadFiles[key].path;
             $("#upload-file-info").text(file.name + ` (${fileIdx++}/${numFiles})`);
             console.log(file);
             var formData = new FormData();
             formData.append('fileToUpload', file);
+            formData.append('path', path);
             $.ajax({
                 xhr: function () {
                     var xhr = new window.XMLHttpRequest();
@@ -188,13 +237,14 @@ function onUploadFiles() {
                 contentType: false,
                 success: function (data) {
                     console.log(data);
-                    if (data == "1") {
-                        resolve();
+                    if (data.err) {
+                        reject(data.err);
                     } else {
-                        reject();
+                        resolve();
                     }
                 },
-                data: formData
+                data: formData,
+                dataType: "json"
             })
         }));
     }
@@ -202,6 +252,8 @@ function onUploadFiles() {
         console.log('uploads, done');
         $('#btn-progress-done').prop('disabled', false);
         onUploadFilesDone();
+    }).catch(err => {
+        handlerError(err);
     });
 }
 
@@ -214,6 +266,7 @@ function onUploadFilesDone() {
         let file = uploadFiles[key].file;
         data.files.push({
             name: file.name,
+            path: uploadFiles[key].path,
             size: (file.size / 1000).toFixed(2),
             md5: uploadFiles[key].md5,
         });
@@ -223,11 +276,13 @@ function onUploadFilesDone() {
         type: "POST",
         url: "./upload_done.php",
         success: function (data) {
-            console.log(data);
+            initVersionPanel();
+            handlerError(data.err);
         },
         data: {
             data: JSON.stringify(data)
-        }
+        },
+        dataType: "json"
     })
 }
 
@@ -254,14 +309,20 @@ function initVersionPanel() {
                 let file = data.files[i];
                 let row = document.createElement("tr");
                 row.innerHTML =
-                    `<th>${rowIndex++}</th><td>${file.name}</td><td>${file.size}</td><td>${file.md5}</td>`;
+                    `<th>${rowIndex++}</th><td>${file.name}</td><td>${file.path}</td><td>${file.size}</td><td>${file.md5}</td>`;
                 table.appendChild(row);
-                serverFiles[file.path + "|" + file.name] = file;
+                serverFiles[file.path + file.name] = file;
             }
         },
         dataType: "json"
     });
+    let tableContent = document.querySelector("#filesUploaded tbody");
+    tableContent.innerHTML = "";
+}
 
+function handlerError(str) {
+    if (str)
+        alert(str);
 }
 
 $(function () {

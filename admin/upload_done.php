@@ -5,6 +5,7 @@ require('../utils/request.php');
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 $conn->set_charset("utf8");
+$conn->autocommit(false);
 
 $data = post_data();
 date_default_timezone_set('PRC');
@@ -27,20 +28,24 @@ if($count == 1){
   
   $result = $conn->query("select * from app_file where version_id =" .$last_version_id);
   while($row = $result->fetch_assoc()) {
-    $sql = sprintf("insert into app_file (name, md5, size, version_id) values ('%s','%s',%s,%s)"
-    , $row["name"], $row["md5"], $row["size"], $insert_id);
-    echo $sql;
+    $sql = sprintf("insert into app_file (name, md5, size, version_id, path) values ('%s','%s',%s,%s,'%s')"
+    , $row["name"], $row["md5"], $row["size"], $insert_id, $row["path"]);
+    // echo $sql;
     $conn->query($sql);
   }
   for($i = 0; $i<count($files); $i++){
     $file_data = $files[$i];
-    $sql = sprintf("insert into app_file (name, md5, version_id, size) values ('%s','%s',%s,%s)"
-    , $file_data["name"], $file_data["md5"], $insert_id, $file_data["size"]);
-    echo $sql;
-    $conn->query($sql);
+    $sql = sprintf("insert into app_file (name, md5, version_id, size, path) values ('%s','%s',%s,%s,'%s')"
+    , $file_data["name"], $file_data["md5"], $insert_id, $file_data["size"], $file_data["path"]);
+    if(!$conn->query($sql)){
+      $error = $conn->error;
+      $conn->rollback();
+      error($error);
+    } 
   }
 }
-
+$conn->commit();
+success();
 $conn->close();
 
 ?>

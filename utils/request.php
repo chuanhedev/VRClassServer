@@ -22,6 +22,10 @@ function get_data(){
         error('null');
 }
 
+function success(){
+    echo "{}";
+}
+
 function error($str){
     echo json_encode(array("err"=>$str));
     die();
