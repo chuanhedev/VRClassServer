@@ -50,7 +50,7 @@ if(isset($_GET['app_version']) && strval($result_row2["update_student"])>0){
   $app_version_id = getAppIdByVersion($app_version);
   //最后一次apk更新时间
   $result5 = $conn->query("select * from application where update_student = 1 order by id desc limit 1");
-  $result5_row = $result->fetch_assoc();
+  $result5_row = $result5->fetch_assoc();
   $last_app_version = $result5_row["version"];
   $last_app_version_id = $result5_row["id"];
   if(strval($last_app_version_id) > strval($app_version_id))

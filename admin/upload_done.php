@@ -43,7 +43,7 @@ if($count == 1){
   
   for($i = 0; $i<count($files); $i++){
     $file_data = $files[$i];
-    if(!in_array( array("server.zip", "teacher.zip", "student.apk"), $file_data["name"])){
+    if(!in_array($file_data["name"], array("server.zip", "teacher.zip", "student.apk"))){
       $sql = sprintf("insert into app_file (name, md5, version_id, size, path) values ('%s','%s',%s,%s,'%s')"
       , $file_data["name"], $file_data["md5"], $insert_id, $file_data["size"], $file_data["path"]);
       if(!$conn->query($sql)){
