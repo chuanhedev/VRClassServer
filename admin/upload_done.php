@@ -23,30 +23,35 @@ $date = date("Y-m-d H:i:s");
 if($count == 1){
   error("version existed");
 }else{
-  $result = $conn->query("select max(id) as id from application");
-  $last_version_id = $result->fetch_assoc()["id"];
-
+  $last_version_id = "";
+  if($result = $conn->query("select max(id) as id from application")){
+    $last_version_id = $result->fetch_assoc()["id"];
+  }
   $sql = sprintf("insert into application (version, date, update_teacher,update_student ,update_server ) values ('%s','%s', %s, %s, %s)"
   , $version, $date, $update_teacher, $update_student, $update_server);
   $conn->query($sql);
   $insert_id = $conn->insert_id;
   
-  $result = $conn->query("select * from app_file where version_id =" .$last_version_id);
-  while($row = $result->fetch_assoc()) {
-    $sql = sprintf("insert into app_file (name, md5, size, version_id, path) values ('%s','%s',%s,%s,'%s')"
-    , $row["name"], $row["md5"], $row["size"], $insert_id, $row["path"]);
-    // echo $sql;
-    $conn->query($sql);
+  if($result = $conn->query("select * from app_file where version_id =" .$last_version_id)){
+    while($row = $result->fetch_assoc()) {
+      $sql = sprintf("insert into app_file (name, md5, size, version_id, path) values ('%s','%s',%s,%s,'%s')"
+      , $row["name"], $row["md5"], $row["size"], $insert_id, $row["path"]);
+      // echo $sql;
+      $conn->query($sql);
+    }
   }
+  
   for($i = 0; $i<count($files); $i++){
     $file_data = $files[$i];
-    $sql = sprintf("insert into app_file (name, md5, version_id, size, path) values ('%s','%s',%s,%s,'%s')"
-    , $file_data["name"], $file_data["md5"], $insert_id, $file_data["size"], $file_data["path"]);
-    if(!$conn->query($sql)){
-      $error = $conn->error;
-      $conn->rollback();
-      error($error);
-    } 
+    if(!in_array( array("server.zip", "teacher.zip", "student.apk"), $file_data["name"])){
+      $sql = sprintf("insert into app_file (name, md5, version_id, size, path) values ('%s','%s',%s,%s,'%s')"
+      , $file_data["name"], $file_data["md5"], $insert_id, $file_data["size"], $file_data["path"]);
+      if(!$conn->query($sql)){
+        $error = $conn->error;
+        $conn->rollback();
+        error($error);
+      } 
+    }
   }
 }
 $conn->commit();

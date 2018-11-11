@@ -32,6 +32,6 @@ function error($str){
 }
 
 function send_data($d){
-    echo json_encode(array("data"=>$d));
+    echo json_encode(array("data"=>$d), JSON_UNESCAPED_SLASHES);
 }
 ?>

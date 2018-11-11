@@ -124,9 +124,9 @@ function previewFile(file) {
 function renderTable(files) {
     console.log(files);
     let tableContent = document.querySelector("#filesUploaded tbody");
-    tableContent.innerHTML = "";
-    let rowIndex = 1;
-    uploadFiles = {};
+    // tableContent.innerHTML = "";
+    let rowIndex = tableContent.children.length + 1;
+    // uploadFiles = {};
     for (let i = 0; i < files.length; i++) {
         let file = files[i].file;
         let filename = file.name;
@@ -138,6 +138,7 @@ function renderTable(files) {
             name: filename,
             path: path
         };
+        console.log(JSON.stringify(uploadFiles));
         let reader = new FileReader();
         reader.onload = function () {
             var arrayBuffer = this.result,
@@ -190,6 +191,13 @@ function renderTable(files) {
 //     xhr.send(formData)
 // }
 
+function onClearFiles(){
+    let tableContent = document.querySelector("#filesUploaded tbody");
+    tableContent.innerHTML = "";
+    uploadFiles = {};
+
+}
+
 function onUploadFiles() {
     let version = document.getElementById("publishVersion").value;
     if (!version) {
@@ -197,11 +205,10 @@ function onUploadFiles() {
         return;
     }
     if (Object.keys(uploadFiles).length == 0) {
-        console.log('nothing to upload');
-        // return;
-    } else {
-        $('#exampleModal').modal('show');
+        handlerError('nothing to upload');
+        return;
     }
+    $('#exampleModal').modal('show');
     let promise = Promise.resolve();
     $('#btn-progress-done').prop('disabled', true);
     console.log(uploadFiles);
@@ -299,9 +306,16 @@ let uploadFiles;
 function initVersionPanel() {
     serverFiles = {};
     $.ajax({
-        url: "../version.php",
+        url: "../version_last.php",
         success: function (data) {
             console.log(data);
+            if (!data.version) {
+                document.getElementById("publishVersion").value = "1.0.0";
+                document.getElementById("checkbox-update-teacher").checked = true;
+                document.getElementById("checkbox-update-student").checked = true;
+                document.getElementById("checkbox-update-server").checked = true;
+                return;
+            }
             let update = '';
             if (data.update_server == "1")
                 update += ",更新服务器";
@@ -331,9 +345,7 @@ function initVersionPanel() {
         },
         dataType: "json"
     });
-    uploadFiles = {};
-    let tableContent = document.querySelector("#filesUploaded tbody");
-    tableContent.innerHTML = "";
+    onClearFiles();
 }
 
 function handlerError(str) {
