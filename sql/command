@@ -1,0 +1,2 @@
+cd C:\xampp\mysql\bin
+mysqldump -root --databases chuanhe > backup.sql
